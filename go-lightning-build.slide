@@ -12,6 +12,8 @@ https://github.com/dherbst
 * GoLangPhilly - Lightning talk on building code code with docker
 This lightning talk explains how I build go code with docker.  It's not necessarily the right way to do it, but this has been working for us.
 
+https://github.com/dherbst/go-lightning-build
+
 1. directory layout
 2. vendoring
 3. make
