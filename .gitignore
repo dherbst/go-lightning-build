@@ -2,10 +2,15 @@
 *.o
 *.a
 *.so
+*.out
+*.html
+*~
 
 # Folders
 _obj
 _test
+bin/*
+src/vendor/*
 
 # Architecture specific extensions/prefixes
 *.[568vq]

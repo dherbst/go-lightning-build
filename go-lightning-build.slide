@@ -1,0 +1,76 @@
+GoLangPhilly - Building go code
+A lightning talk on building go code with docker
+12 Jan 2016
+Tags: golang, docker
+
+Darrel Herbst
+DramaFever
+dherbst@gmail.com
+https://github.com/dherbst
+@darrelherbst
+
+* GoLangPhilly - Lightning talk on building code code with docker
+This lightning talk explains how I build go code with docker.  It's not necessarily the right way to do it, but this has been working for us.
+
+1. directory layout
+2. vendoring
+3. make
+4. docker-machine
+5. testing
+6. coverage
+
+* 1. Directory layout
+
+/makefile
+/src/PackageName/*.go
+/src/vendor/github.com/*  (We don't check these into git)
+/doc/*.md
+/bin/executables/*
+
+* 2. Vendoring & 3. makefile
+
+Use ```GO15VENDOREXPERIMENT=1``` to have go use $GOPATH/src/vendor for your dependencies
+
+`.gitignore`
+
+    src/vendor/*
+
+Have your makefile clone your dependencies to src/vendor
+
+    get:
+         mkdir -p src/vendor
+         git clone git@github.com:DramaFever/go.uuid.git --branch master \
+         src/vendor/github.com/satori/go.uuid && \
+         cd src/vendor/github.com/satori/go.uuid && \
+         git checkout 242673bbc820e051ef00033e274d32e08ece9e15
+
+* 4. docker-machine
+
+Install docker-machine
+
+   docker-machine start
+   docker pull golang:1.5
+
+* Back to 3. makefile
+
+Use a build task in make to compile things
+
+    make clean get build
+    make test
+    open coverage.html
+
+build task has two parts
+
+1. Run the golang:1.5 docker container (build)
+2. build in the running container (build-in-container)
+
+* Run the docker container
+
+    build:
+         docker run --rm -i -v $(PWD):/myapp -w /myapp golang:1.5 base -c "make build-in-container"
+
+    build-in-container:
+         GO15VENDOREXPERIMENT=1 GOPATH=$(PWD) go vet lightning
+         GO15VENDOREXPERIMENT=1 GOPATH=$(PWD) go build lightning
+         GO15VENDOREXPERIMENT=1 GOPATH=$(PWD) go test -coverprofile=coverage.out lightning
+         GO15VENDOREXPERIMENT=1 GOPATH=$(PWD) go tool cover -html=coverage.out -o coverage.html
