@@ -27,7 +27,7 @@ https://github.com/dherbst/go-lightning-build
 /src/PackageName/*.go
 /src/vendor/github.com/*  (We don't check these into git)
 /doc/*.md
-/bin/executables/*
+/bin/executables*
 
 * 2. Vendoring & 3. makefile
 
@@ -53,6 +53,13 @@ Install docker-machine
    docker-machine start
    docker pull golang:1.5
 
+If you want other versions of go, take a look at https://hub.docker.com/_/golang/
+
+- 1.4
+- 1.5
+- 1.6 beta
+
+
 * Back to 3. makefile
 
 Use a build task in make to compile things
@@ -69,10 +76,23 @@ build task has two parts
 * Run the docker container
 
     build:
-         docker run --rm -i -v $(PWD):/myapp -w /myapp golang:1.5 base -c "make build-in-container"
+         docker run --rm -i -v $(PWD):/myapp -w /myapp golang:1.5 bash -c "make build-in-container"
 
     build-in-container:
          GO15VENDOREXPERIMENT=1 GOPATH=$(PWD) go vet lightning
          GO15VENDOREXPERIMENT=1 GOPATH=$(PWD) go build lightning
          GO15VENDOREXPERIMENT=1 GOPATH=$(PWD) go test -coverprofile=coverage.out lightning
          GO15VENDOREXPERIMENT=1 GOPATH=$(PWD) go tool cover -html=coverage.out -o coverage.html
+
+* Run it
+
+   $ make
+   docker run --rm -i -v /Users/dh/src/dherbst/go-lightning-build:/myapp -w /myapp golang:1.5 bash -c "make build-in-container"
+   GO15VENDOREXPERIMENT=1 GOPATH=/myapp go vet lightning
+   GO15VENDOREXPERIMENT=1 GOPATH=/myapp go build -a lightning
+   GO15VENDOREXPERIMENT=1 GOPATH=/myapp go build -a -o bin/lightning src/lightning/cmd/main.go
+   GO15VENDOREXPERIMENT=1 GOPATH=/myapp go test -coverprofile=coverage.out lightning
+   ok   	lightning	0.005s	coverage: 50.0% of statements
+   GO15VENDOREXPERIMENT=1 GOPATH=/myapp go tool cover -html=coverage.out -o coverage.html
+
+   $ open coverage.html
