@@ -96,3 +96,37 @@ build task has two parts
    GO15VENDOREXPERIMENT=1 GOPATH=/myapp go tool cover -html=coverage.out -o coverage.html
 
    $ open coverage.html
+
+* Now you have your executable, make a docker image with it
+If you are running on OSX, your executable is sitting on your local filesystem, but it a linux executable, not an osx one:
+
+Linux:
+
+    $ file lightning
+    lightning: ELF 64-bit LSB executable, x86-64, version 1 (SYSV), dynamically linked (uses
+    shared libs), not stripped
+
+If you try to run it on OSX:
+
+    $ ./lightning
+    -bash: ./lightning: cannot execute binary file
+
+OSX:
+
+    $ file `which ls`
+    /bin/ls: Mach-O 64-bit executable x86_64
+
+* Dockerfile
+
+    FROM buildpack-deps:jessie-scm
+    ADD bin/lightning /usr/local/bin/lightning
+    ENTRYPOINT ["lightning"]
+
+Build the image
+
+    docker build -t lightning:latest .
+
+Run the image
+
+    docker run -it lightning:latest
+    Here is the uuid 23a8ccca-50a3-4d3c-9af2-428053b1290d
