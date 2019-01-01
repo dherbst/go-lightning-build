@@ -91,6 +91,14 @@ build task has two parts
 
    $ open coverage.html
 
+* lint it
+Using lint is a good way to keep style up to date.
+
+    docker run --rm -i -v $(PWD):/go/src/github.com/dherbst/go-lightning-build -w /go/src/github.com/dherbst/go-lightning-build golang:1.11 make lint-in-container
+
+    go get -u golang.org/x/lint/golint
+    golint github.com/dherbst/go-lightning-build/lightning
+
 * Now you have your executable, make a docker image with it
 If you are running on OSX, your executable is sitting on your local filesystem, but it a linux executable, not an osx one:
 
