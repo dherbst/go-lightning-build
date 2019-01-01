@@ -1,3 +1,5 @@
+.PHONY:*
+
 all: clean get build
 
 clean:
@@ -9,7 +11,7 @@ get:
 	mkdir -p vendor
 	git clone git@github.com:DramaFever/go.uuid.git --branch master vendor/github.com/satori/go.uuid && cd vendor/github.com/satori/go.uuid && git checkout 242673bbc820e051ef00033e274d32e08ece9e15
 
-build:
+build: lint
 	docker run --rm -i -v $(PWD):/go/src/github.com/dherbst/go-lightning-build -w /go/src/github.com/dherbst/go-lightning-build golang:1.11 bash -c "make build-in-container"
 
 build-in-container:
@@ -19,5 +21,9 @@ build-in-container:
 	go test -coverprofile=coverage.out github.com/dherbst/go-lightning-build/lightning
 	go tool cover -html=coverage.out -o coverage.html
 
+lint:
+	docker run --rm -i -v $(PWD):/go/src/github.com/dherbst/go-lightning-build -w /go/src/github.com/dherbst/go-lightning-build golang:1.11 make lint-in-container
+
 lint-in-container:
-	go get golint
+	go get -u golang.org/x/lint/golint
+	golint github.com/dherbst/go-lightning-build/lightning
