@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	"lightning"
+	"github.com/dherbst/go-lightning-build/lightning"
 )
 
 func main() {
