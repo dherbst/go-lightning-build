@@ -1,10 +1,10 @@
 GoLangPhilly - Building go code
 A lightning talk on building go code with docker
-12 Jan 2016
+1 Jan 2019
 Tags: golang, docker
 
 Darrel Herbst
-DramaFever
+Warner Brothers Digital Labs
 dherbst@gmail.com
 https://github.com/dherbst
 @darrelherbst
@@ -24,41 +24,35 @@ https://github.com/dherbst/go-lightning-build
 * 1. Directory layout
 
 /makefile
-/src/PackageName/*.go
-/src/vendor/github.com/*  (We don't check these into git)
+/PackageName/*.go  (only need PackageName if it does not match the repo name)
+/vendor/github.com/*  (We don't check these into git)
 /doc/*.md
 /bin/executables*
 
 * 2. Vendoring & 3. makefile
 
-Use ```GO15VENDOREXPERIMENT=1``` to have go use $GOPATH/src/vendor for your dependencies
+DO NOT CHANGE THE GOPATH.  Use $GOPATH/src/vendor for your dependencies
 
 `.gitignore`
 
-    src/vendor/*
+    /vendor/*
 
-Have your makefile clone your dependencies to src/vendor
+Have your makefile clone your dependencies to vendor.   We do this so that we can create a clone of the repos under our org name so they never get deleted.   You can use gomod if you prefer.
 
     get:
-         mkdir -p src/vendor
+         mkdir -p vendor
          git clone git@github.com:DramaFever/go.uuid.git --branch master \
-         src/vendor/github.com/satori/go.uuid && \
-         cd src/vendor/github.com/satori/go.uuid && \
+         vendor/github.com/satori/go.uuid && \
+         cd vendor/github.com/satori/go.uuid && \
          git checkout 242673bbc820e051ef00033e274d32e08ece9e15
 
-* 4. docker-machine
+* 4. docker
 
-Install docker-machine
+Install docker
 
-   docker-machine start
-   docker pull golang:1.5
+   docker pull golang:1.11
 
 If you want other versions of go, take a look at https://hub.docker.com/_/golang/
-
-- 1.4
-- 1.5
-- 1.6 beta
-
 
 * Back to 3. makefile
 
@@ -70,30 +64,30 @@ Use a build task in make to compile things
 
 build task has two parts
 
-1. Run the golang:1.5 docker container (build)
+1. Run the golang:1.11 docker container (build)
 2. build in the running container (build-in-container)
 
-* Run the docker container
+* Run the docker container, use the existing GOPATH, never change it
 
     build:
-         docker run --rm -i -v $(PWD):/myapp -w /myapp golang:1.5 bash -c "make build-in-container"
+         docker run --rm -i -v $(PWD):/go/src/github.com/dherbst/reponame -w /go/src/github.com/dherbst/reponame golang:1.11 make build-in-container
 
     build-in-container:
-         GO15VENDOREXPERIMENT=1 GOPATH=$(PWD) go vet lightning
-         GO15VENDOREXPERIMENT=1 GOPATH=$(PWD) go build lightning
-         GO15VENDOREXPERIMENT=1 GOPATH=$(PWD) go test -coverprofile=coverage.out lightning
-         GO15VENDOREXPERIMENT=1 GOPATH=$(PWD) go tool cover -html=coverage.out -o coverage.html
+         go vet github.com/dherbst/go-lightning-build/lightning
+         go build github.com/dherbst/go-lightning-build/lightning
+         go test -coverprofile=coverage.out github.com/dherbst/go-lightning-build/lightning
+         go tool cover -html=coverage.out -o coverage.html
 
 * Run it
 
    $ make
-   docker run --rm -i -v /Users/dh/src/dherbst/go-lightning-build:/myapp -w /myapp golang:1.5 bash -c "make build-in-container"
-   GO15VENDOREXPERIMENT=1 GOPATH=/myapp go vet lightning
-   GO15VENDOREXPERIMENT=1 GOPATH=/myapp go build -a lightning
-   GO15VENDOREXPERIMENT=1 GOPATH=/myapp go build -a -o bin/lightning src/lightning/cmd/main.go
-   GO15VENDOREXPERIMENT=1 GOPATH=/myapp go test -coverprofile=coverage.out lightning
+   docker run --rm -i -v /Users/dh/src/dherbst/go-lightning-build:/go/src/github.com/dherbst/go-lightning-build -w /go/src/github.com/dherbst/go-lightning-build golang:1.11 make build-in-container
+   go vet github.com/dherbst/go-lightning-build/lightning
+   go build -a github.com/dherbst/go-lightning-build/lightning
+   go build -a -o bin/lightning github.com/dherbst/go-lightning-build/cmd/main.go
+   go test -coverprofile=coverage.out github.com/dherbst/go-lightning-build/lightning
    ok   	lightning	0.005s	coverage: 50.0% of statements
-   GO15VENDOREXPERIMENT=1 GOPATH=/myapp go tool cover -html=coverage.out -o coverage.html
+   go tool cover -html=coverage.out -o coverage.html
 
    $ open coverage.html
 
